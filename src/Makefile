@@ -8,10 +8,10 @@ run: all
 
 OBJ=main.o
 
-main.o: main.c
+main.o: main.c constants.h
 
 game: $(OBJ)
-	gcc $(OBJ) -o game
+	gcc $(OBJ) -o game ` sdl2-config --libs`
 
 .c.o:
-	gcc -c $< -o $@ -std=c99 -Wall
+	gcc -c $< -o $@ -std=c99 -Wall `sdl2-config --cflags`
