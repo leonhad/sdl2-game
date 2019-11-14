@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include "constants.h"
 
+int game_is_running = SDL_FALSE;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
@@ -45,9 +46,61 @@ SDL_bool initialize_window(void)
     return SDL_TRUE;
 }
 
+void process_input()
+{
+    SDL_Event event;
+    SDL_PollEvent(&event);
+
+    switch(event.type)
+    {
+        case SDL_QUIT:
+            game_is_running = SDL_FALSE;
+            break;
+        case SDL_KEYDOWN:
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                game_is_running = SDL_FALSE;
+            }
+            break;
+    }
+}
+
+void setup()
+{
+    // TODO: Fix setup.
+}
+
+void update()
+{
+    // TODO: Fix update.
+}
+
+void render()
+{
+    // TODO: Fix render.
+}
+
+void destroy_window()
+{
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
+
 int main(int argc, char *argv[])
 {
-    initialize_window();
+    game_is_running = initialize_window();
+
+    setup();
+
+    while(game_is_running)
+    {
+        process_input();
+        update();
+        render();
+    }
+
+    destroy_window();
 
     return EXIT_SUCCESS;
 }
