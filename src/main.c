@@ -83,7 +83,8 @@ void setup()
 
 void update()
 {
-    // TODO: Fix update.
+    ball.x++;
+    ball.y++;
 }
 
 void render()
@@ -94,10 +95,10 @@ void render()
     // Draw a rectangle
     SDL_Rect ball_rect = 
     {
-        ball.x,
-        ball.y,
-        ball.width,
-        ball.height
+        (int)ball.x,
+        (int)ball.y,
+        (int)ball.width,
+        (int)ball.height
     };
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
