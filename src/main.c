@@ -77,8 +77,8 @@ void process_input()
 
 void setup()
 {
-    ball.x = 20;
-    ball.y = 20;
+    ball.x = 20.0f;
+    ball.y = 20.0f;
     ball.width = 15;
     ball.height = 15;
 }
@@ -88,10 +88,13 @@ void update()
     // Wait some time until the frame target.
     while(!SDL_TICKS_PASSED(SDL_GetTicks(), last_frame_time + FRAME_TARGET_TIME));
 
+    // Get the delta time factor converted to seconds to be used to update objects.
+    float delta_time = (SDL_GetTicks() - last_frame_time) / 1000.0f;
+
     last_frame_time = SDL_GetTicks();
 
-    ball.x += 2;
-    ball.y += 2;
+    ball.x += 50.0f * delta_time;
+    ball.y += 50.0f * delta_time;
 }
 
 void render()
