@@ -77,7 +77,12 @@ void update()
 
 void render()
 {
-    // TODO: Fix render.
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    // TODO: Here is where can start drawing our game objects.
+
+    SDL_RenderPresent(renderer);
 }
 
 void destroy_window()
