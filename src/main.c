@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <SDL2/SDL.h>
 #include "constants.h"
 
@@ -9,129 +8,153 @@ SDL_Renderer* renderer = NULL;
 
 int last_frame_time = 0;
 
-struct ball
-{
+struct game_object {
     float x;
     float y;
     float width;
     float height;
-} ball;
+    float vel_x;
+    float vel_y;
+} ball, paddle;
 
-SDL_bool initialize_window(void)
-{
+int initialize_window(void) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         fprintf(stderr, "Error initializing SDL.\n");
         return SDL_FALSE;
     }
-
-    window = SDL_CreateWindow
-    (
-        NULL, // Title
-        SDL_WINDOWPOS_CENTERED, // X pos
-        SDL_WINDOWPOS_CENTERED, // Y pos
-        WINDOW_WIDTH, // Width
-        WINDOW_HEIGHT, // Height
+    window = SDL_CreateWindow(
+        NULL,
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
         SDL_WINDOW_BORDERLESS
     );
-
-    if (!window)
-    {
-        fprintf(stderr, "Error creating SQL Window.\n");
+    if (!window) {
+        fprintf(stderr, "Error creating SDL Window.\n");
         return SDL_FALSE;
     }
-
-    renderer = SDL_CreateRenderer
-    (
-        window, // The window instance
-        -1, // Default driver
-        0   // Flags
-    );
-
-    if (!renderer)
-    {
-        fprintf(stderr, "Error creating SQL Renderer.\n");
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    if (!renderer) {
+        fprintf(stderr, "Error creating SDL Renderer.\n");
         return SDL_FALSE;
     }
-
     return SDL_TRUE;
 }
 
-void process_input()
-{
+void process_input(void) {
     SDL_Event event;
     SDL_PollEvent(&event);
 
-    switch(event.type)
-    {
+    switch (event.type) {
         case SDL_QUIT:
             game_is_running = SDL_FALSE;
             break;
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_ESCAPE)
-            {
                 game_is_running = SDL_FALSE;
-            }
+            if (event.key.keysym.sym == SDLK_LEFT)
+                paddle.vel_x = -400;
+            if (event.key.keysym.sym == SDLK_RIGHT)
+                paddle.vel_x = +400;
+            break;
+        case SDL_KEYUP:
+            if (event.key.keysym.sym == SDLK_LEFT)
+                paddle.vel_x = 0;
+            if (event.key.keysym.sym == SDLK_RIGHT)
+                paddle.vel_x = 0;
             break;
     }
 }
 
-void setup()
-{
-    ball.x = 20.0f;
-    ball.y = 20.0f;
+void setup(void) {
     ball.width = 15;
     ball.height = 15;
+    ball.x = 20;
+    ball.y = 20;
+    ball.vel_x = 300;
+    ball.vel_y = 300;
+
+    paddle.width = 100; 
+    paddle.height = 20;
+    paddle.x = (WINDOW_WIDTH / 2) - (paddle.width / 2);
+    paddle.y = WINDOW_HEIGHT - 40;
+    paddle.vel_x = 0;
+    paddle.vel_y = 0;
 }
 
-void update()
-{
-    // Wait some time until the frame target.
-    while(!SDL_TICKS_PASSED(SDL_GetTicks(), last_frame_time + FRAME_TARGET_TIME));
+void update(void) {
+    // Waste some time / sleep until we reach the frame target time
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), last_frame_time + FRAME_TARGET_TIME));
 
-    // Get the delta time factor converted to seconds to be used to update objects.
+    // Get a delta time factor converted to seconds to be used to update my objects
     float delta_time = (SDL_GetTicks() - last_frame_time) / 1000.0f;
 
+    // Store the milliseconds of the current frame
     last_frame_time = SDL_GetTicks();
 
-    ball.x += 50.0f * delta_time;
-    ball.y += 50.0f * delta_time;
+    // Check for ball collision with the walls
+    if (ball.x + ball.width > WINDOW_WIDTH || ball.x < 0)
+        ball.vel_x = -ball.vel_x;
+    if (ball.y < 0)
+        ball.vel_y = -ball.vel_y;
+
+    // Check for ball collision with the paddle
+    if (ball.y + ball.height >= paddle.y && ball.x + ball.width > paddle.x && ball.x < paddle.x + paddle.width)
+        ball.vel_y = -ball.vel_y;
+
+    // Check for game over
+    if (ball.y + ball.height > WINDOW_HEIGHT)
+        game_is_running = SDL_FALSE;
+
+    // update ball position
+    ball.x += ball.vel_x * delta_time;
+    ball.y += ball.vel_y * delta_time;
+
+    // update paddle position
+    paddle.x += paddle.vel_x * delta_time;
+    paddle.y += paddle.vel_y * delta_time;
 }
 
-void render()
-{
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+void render(void) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
     // Draw a rectangle
-    SDL_Rect ball_rect = 
-    {
+    SDL_Rect ball_rect = {
         (int)ball.x,
         (int)ball.y,
         (int)ball.width,
         (int)ball.height
     };
-
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderFillRect(renderer, &ball_rect);
+
+    // Render the left paddle
+    SDL_Rect paddle_rect = {
+        (int)paddle.x,
+        (int)paddle.y,
+        (int)paddle.width,
+        (int)paddle.height
+    };
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(renderer, &paddle_rect);
 
     SDL_RenderPresent(renderer);
 }
 
-void destroy_window()
-{
+void destroy_window(void) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char **argv) {
     game_is_running = initialize_window();
 
     setup();
 
-    while(game_is_running)
-    {
+    while (game_is_running) {
         process_input();
         update();
         render();
@@ -139,5 +162,5 @@ int main(int argc, char *argv[])
 
     destroy_window();
 
-    return EXIT_SUCCESS;
+    return 0;
 }
