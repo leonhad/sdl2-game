@@ -2,6 +2,11 @@
 *~
 Makefile
 autom4te.cache
+stamp-h1
+.deps
+config.h
+*.log
+config.status
 
 # Prerequisites
 *.d
