@@ -6,12 +6,20 @@ clean:
 run: all
 	./game
 
-OBJ=main.o
+SRCS = main.c
 
-main.o: main.c constants.h
+OBJ=main.o
 
 game: $(OBJ)
 	gcc $(OBJ) -o game `sdl2-config --libs`
 
-.c.o:
+%.o: %.c
 	gcc -c $< -o $@ -std=c99 -Wall `sdl2-config --cflags`
+
+depend: .depend
+
+.depend: $(SRCS)
+	rm -f ./.depend
+	$(CC) $(CFLAGS) -MM $^ -MF  ./.depend;
+
+include .depend
